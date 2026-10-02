@@ -9,7 +9,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
         body { background: #1a1a1f; min-height: 100vh; color: #fff; padding-bottom: 40px; }
         .bg-logo { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.06; pointer-events: none; }
-        .bg-logo img { max-width: 600px; width: 80vw; }
+        .bg-logo img { max-width: 2000px; width: 1800vw; }
         .konten { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 30px 20px; }
         .kepala { text-align: center; margin-bottom: 30px; }
         .kepala h1 { font-size: 26px; color: #e50914; margin-bottom: 5px; }
@@ -36,6 +36,7 @@
         .tombol { padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; background: #0066CC; color: #fff; cursor: pointer; }
         .tombol:hover { opacity: 0.9; }
         .tombol.hijau { background: #00c853; margin-left: 10px; }
+        .tombol.merah { background: #ff1744; margin-left: 10px; }
         input { padding: 10px 14px; border: 1px solid #444; border-radius: 6px; background: #2a2a2f; color: #fff; font-size: 14px; flex: 1; }
         .baris-input { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
         .keterangan { font-size: 12px; color: #888; margin-top: 10px; }
@@ -81,6 +82,7 @@
         <h2>📋 SEMUA RIWAYAT</h2>
         <div class="muat-ulang">
             <button class="tombol" onclick="muatData()">🔄 Segarkan Data</button>
+            <button class="tombol merah" onclick="resetLog()">🗑️ Reset Semua Log</button>
         </div>
         <div class="daftar" id="daftarRiwayat">
             <div style="color:#777;padding:30px;text-align:center;">Memuat data...</div>
@@ -108,7 +110,6 @@ async function muatData() {
   try {
     const res = await fetch('/api/data');
     if (!res.ok) throw new Error('Server tidak merespons');
-    
     const data = await res.json();
 
     paramSekarang = data.ringkasan.parameter || '=aktif';
@@ -142,10 +143,7 @@ async function muatData() {
 
 async function simpanParameter() {
   const nilai = document.getElementById('inputParameter').value.trim();
-  if (!nilai) {
-    alert('Masukkan nilai parameter!');
-    return;
-  }
+  if (!nilai) { alert('Masukkan nilai parameter!'); return; }
 
   try {
     const res = await fetch('/api/atur-parameter', {
@@ -153,9 +151,7 @@ async function simpanParameter() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ parameter: nilai })
     });
-    
     if (!res.ok) throw new Error('Gagal menyimpan');
-    
     const hasil = await res.json();
     
     if (hasil.ok) {
@@ -164,11 +160,32 @@ async function simpanParameter() {
       const pesan = document.getElementById('pesanBerhasil');
       pesan.style.display = 'block';
       setTimeout(() => pesan.style.display = 'none', 3000);
+    }
+  } catch (e) {
+    alert('Kesalahan: ' + e.message);
+  }
+}
+
+async function resetLog() {
+  if (!confirm('⚠️ Yakin ingin MENGHAPUS SEMUA data log?\n\nTindakan ini TIDAK BISA dibatalkan!')) {
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/reset-log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const hasil = await res.json();
+    
+    if (hasil.ok) {
+      alert('✅ Semua log berhasil dihapus!');
+      muatData();
     } else {
       alert('Gagal: ' + (hasil.pesan || 'Tidak diketahui'));
     }
   } catch (e) {
-    alert('Kesalahan: ' + e.message + '\nPastikan server.js sudah diperbarui!');
+    alert('Kesalahan: ' + e.message);
   }
 }
 
